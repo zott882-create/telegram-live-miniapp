@@ -1,2 +1,5 @@
-# No required third-party Python packages.
-# The app works on Python 3.10+ standard library.
+#!/usr/bin/env sh
+HOST="${HOST:-0.0.0.0}"
+PORT="${PORT:-8080}"
+export HOST PORT
+python3 app.py
