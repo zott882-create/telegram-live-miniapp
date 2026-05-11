@@ -1,0 +1,1 @@
+V4 inline ready. Upload the telegram_live_miniapp folder to GitHub root. Render Root Directory must be telegram_live_miniapp.
