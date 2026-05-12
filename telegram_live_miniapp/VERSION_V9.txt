@@ -1,3 +1,0 @@
-V9.3 restore pressure/stat sizes
-
-V9.5 odds below score, no handicap row, WDL as compare rows.
