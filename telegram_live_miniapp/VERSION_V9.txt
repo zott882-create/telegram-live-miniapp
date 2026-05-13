@@ -1,0 +1,1 @@
+V9.25 league header flags: Sweden, Yemen, Japan (J2/J3 100 Year Vision), Brazil (BRA LP), Zanzibar (TZ), SAND2 (ZA). Team logos in the match list no longer have the faint rounded background tile behind them (transparent by default; tile shown only when the logo fails to load and we fall back to initials).
