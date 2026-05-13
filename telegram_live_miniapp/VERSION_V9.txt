@@ -1,1 +1,0 @@
-V9.23 pressure chart: pauses during HT, resumes only from 2nd half start, 50 slots per half, added AMERICAS league flags
