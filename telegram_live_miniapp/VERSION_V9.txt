@@ -1,0 +1,1 @@
+V9.30 League priority sort: match feed now sorts leagues from top/strong tournaments to weaker/lower tournaments. Strong league rank is primary; odds and goal-wait signals only sort inside the same tier. Collector/backend sorting also prioritizes top leagues first.
