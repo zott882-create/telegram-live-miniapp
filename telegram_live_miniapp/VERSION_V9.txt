@@ -1,1 +1,0 @@
-V9.22 pressure chart: fixed thin Attack-Momentum bars, 100 full-match slots, 50 last-20 slots
