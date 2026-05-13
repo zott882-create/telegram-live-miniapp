@@ -1,1 +1,0 @@
-V9.26 pressure indicator tuned: fixed thin attack-momentum bars, 100 slots for full match (50 per half), 50 slots for last 20 minutes. Half-time pressure collection is paused, so the chart/cursor does not keep moving during HT and resumes only when a real 2T snapshot arrives. Keeps V9.25 league flags and clean transparent team logos.
