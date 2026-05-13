@@ -1,1 +1,0 @@
-V9.28 Detail tabs: match card now has two tabs. Details tab shows odds, full-match pressure indicator, and match events. Statistics tab shows live match stats, 20-minute pressure indicator, and average total/statistics block. Render-safe root package preserved.
