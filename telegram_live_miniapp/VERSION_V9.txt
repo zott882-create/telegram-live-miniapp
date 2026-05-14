@@ -1,4 +1,0 @@
-V9.33
-- Matches tab: scored/conceded moved to top near average total.
-- Match timeline redesigned compact like event feed.
-- Yellow and red cards added to event parsing and DB timeline from stat changes.
