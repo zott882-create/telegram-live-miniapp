@@ -1,3 +1,0 @@
-V9.43 stable notify
-- Main feed refresh uses targeted DOM patching to remove full-screen blink.
-- Notification matches stay until manual remove/clear, with local cache fallback.
