@@ -1,5 +1,0 @@
-V9.43
-- Match events timeline: removed team names per user request; flat centered single-row layout with side accent bar (green=home, blue=away) encoding the team.
-- Detail screen no longer flashes on the 15s silent refresh — refreshDetailSilently now patches only the scoreboard and tab body instead of rebuilding the whole detail DOM (incl. the SVG pressure chart). Site feels noticeably smoother.
-- Matches list: loadLive() also does a partial DOM update when already on the matches view (only the feed swaps, the topbar/nav stay), eliminating the periodic full-page rebuild.
-- Fixed: "open a match, go back, find yourself at the top". restoreMatchListPosition now retries up to ~12 animation frames until the matches feed has actually laid out, instead of trying once and giving up. history.scrollRestoration is set to "manual" so the browser doesn't fight our restore.
