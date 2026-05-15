@@ -1,1 +1,0 @@
-V9.42 smooth patch: no team names in match events, smoother live refresh, preserved match-list scroll
