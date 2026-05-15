@@ -1,6 +1,0 @@
-V9.44 stable goal notify
-- Removed the per-card × button from notification match rows.
-- Only one notification filter profile can be ON at a time; enabling one turns the others OFF.
-- Matches found by the notification filter and by Ждём гол are saved, sent to Telegram, and automatically watched for the next goal.
-- Goal alerts use a separate Telegram cooldown so they are not blocked by the first match-found message.
-- League sorting is stricter: top adult leagues stay above youth/women/reserve/friendly tournaments.
