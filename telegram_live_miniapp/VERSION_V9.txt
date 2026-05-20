@@ -1,0 +1,40 @@
+V9.80 - code review fixes (filter, DoS, SSRF, locks, rate-limit)
+
+Critical bug fixes:
+- sanitize_notify_filter restored 5 fields that were silently dropped on every
+  /api/subscribe: goals_max, score_diff_max, pressure_min, signal_type,
+  goal_signal_enabled. Half of the Mini App filter sliders had no server effect.
+- New goals_min filter (lets users wait for "total >= N" matches).
+- minute_min/minute_max are auto-swapped if user enters them reversed
+  (previously the filter would silently match nothing).
+- possession_min no longer falls back to 50% when stats are missing — that
+  caused the filter to always pass possession <= 50% checks before stats arrived.
+
+Security:
+- parse_json_body now caps Content-Length at 256 KB. Previously a single
+  request with Content-Length: 10_000_000_000 would try to read 10 GB into RAM.
+- _download_team_logo validates the URL scheme (http/https only) and blocks
+  localhost / .local / .internal / loopback / private / link-local / multicast
+  IP literals — prevents SSRF when IGScore (or a MITM) hands back a malicious
+  logo URL.
+- Static file handler now resolves the final path and refuses anything that
+  escapes static/ via symlinks.
+- nosniff / Referrer-Policy headers added to JSON and text responses.
+- BOT_TOKEN tail is no longer printed in startup logs.
+
+Performance / correctness:
+- /api/match/avg now goes through the same rate-limit bucket as /api/match
+  (was previously unprotected; it transitively calls IGScore).
+- Telegram send-statistics counters now use a dedicated lock so concurrent
+  workers no longer lose increments.
+- _rate_limit_ok cleanup now drops *stale* buckets (entirely out of window)
+  rather than the first N keys by insertion order.
+
+V9.79 - security and stale cleanup
+- Debug endpoints disabled by default and admin-protected when enabled
+- Admin HTTP endpoints moved to POST body to avoid init_data in URLs
+- STALE_LIVE_HIDE_AFTER_MINUTES for stronger stale live cleanup
+- Separate notification match retention via NOTIFICATION_MATCH_RETENTION_HOURS
+- Provider events with impossible minutes are filtered
+- Telegram 400/403 disables blocked/invalid users and clears their notification queue
+- Admin notification panel shows persistent Telegram job counts
