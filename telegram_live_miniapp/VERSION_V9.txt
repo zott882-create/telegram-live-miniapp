@@ -1,0 +1,28 @@
+V9.76 — stability & scale fixes
+
+1. render.yaml: plan free → starter (фоновые воркеры не засыпают)
+2. DEBUG_ODDS флаг — debug-print в odds-fetcher молчит по умолчанию
+3. Убран небезопасный fallback "len(_notify_subs) == 1" в /api/notify/clear и /remove
+4. UPSERT по chat_id вместо DELETE ALL + INSERT ALL:
+   - _save_notify_table теперь не делает DELETE FROM
+   - добавлены _upsert_notify_row / _delete_notify_row
+   - dirty-tracking: _save_notify_subs пишет только изменённое
+   - точечные _save_one_notify_sub / _save_one_notify_matches
+   - 7 горячих хендлеров (handle_notify, handle_subscribe и т.д.) переведены
+5. send_telegram_message вынесен из-под _notify_lock:
+   - notify_worker_loop переписан на 3 фазы
+     • фаза 1: под локом — собираем outbox + retry, помечаем delivered
+     • фаза 2: без лока — шлём в Telegram с rate-delay 50мс
+     • фаза 3: под локом — откатываем delivered у неудачных, кладём в pending
+   - _collect_pending_retry_tasks выделен для безопасного сбора retry-задач
+6. Модульная структура (начато):
+   - helpers/countries.py — справочники, ранжирование лиг, country_code
+   - helpers/stats.py — pressure_power, flat_stats, stat_pairs_from_response
+   - дубликаты в app.py удалены, ре-экспорт через импорты
+
+Дальше планируется:
+   - helpers/storage.py (sqlite/postgres абстракция)
+   - helpers/telegram_api.py (send_telegram_message, _tg_api, verify_init_data)
+   - deleteWebhook при старте админ-поллера
+   - rate-limit на /api/live и /api/match
+   - graceful shutdown
