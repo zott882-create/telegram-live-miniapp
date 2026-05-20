@@ -1,8 +1,0 @@
-V9.79 - security and stale cleanup
-- Debug endpoints disabled by default and admin-protected when enabled
-- Admin HTTP endpoints moved to POST body to avoid init_data in URLs
-- STALE_LIVE_HIDE_AFTER_MINUTES for stronger stale live cleanup
-- Separate notification match retention via NOTIFICATION_MATCH_RETENTION_HOURS
-- Provider events with impossible minutes are filtered
-- Telegram 400/403 disables blocked/invalid users and clears their notification queue
-- Admin notification panel shows persistent Telegram job counts
