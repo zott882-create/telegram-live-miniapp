@@ -1,0 +1,1 @@
+V9.77 - performance cleanup: gzip API, runtime cache cleanup, MATCH_RETENTION_HOURS, Render logo-download off, no phantom first-seen goals, admin deleteWebhook
