@@ -1,0 +1,6 @@
+V9.78 - notification reliability
+- Persistent Telegram notification jobs in SQLite/PostgreSQL (survives restarts)
+- Retry/backoff for failed Telegram sends, with max attempts
+- /health and /ready endpoints for Render/Coolify health checks
+- Frontend polling intervals slowed/configurable in static/index.html
+- Admin/console logs for notification queue and collector health

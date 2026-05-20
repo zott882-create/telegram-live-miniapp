@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: telegram-live-miniapp
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    healthCheckPath: /ready
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: HOST
+        value: 0.0.0.0
+      - key: COLLECTOR_ENABLED
+        value: "1"
+      - key: LIVE_FROM_DB_ONLY
+        value: "1"
+      - key: ADMIN_IDS
+        sync: false
+      - key: ADMIN_PANEL_ENABLED
+        value: "1"
+      - key: ADMIN_POLLING_ENABLED
+        value: "1"
+      - key: MATCH_RETENTION_HOURS
+        value: "24"
+      - key: API_GZIP_ENABLED
+        value: "1"
+      - key: TEAM_LOGO_DOWNLOAD
+        value: "0"
+      - key: TELEGRAM_JOB_MAX_ATTEMPTS
+        value: "12"
+      - key: TELEGRAM_JOB_RETRY_BASE_SECONDS
+        value: "20"
+      - key: TELEGRAM_JOB_RETRY_MAX_SECONDS
+        value: "600"
+      - key: NOTIFY_POLL_INTERVAL
+        value: "30"
+
