@@ -1,3 +1,0 @@
-v9.83 pressure chart gap fix
-
-v9.84 stale live + normalized pressure chart
