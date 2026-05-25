@@ -1,0 +1,8 @@
+v9.87 pressure chart coordinate fix
+v9.83 pressure chart gap fix
+
+v9.84 stale live + normalized pressure chart
+
+V9.85 pressure chart hotfix: continuous elapsed ticks, no sparse broken gaps.
+
+V9.86 pressure chart real momentum layout
