@@ -1,0 +1,26 @@
+V10 BUILD REPORT
+================
+
+Implemented:
+- LIVE / PREMATCH main tabs
+- SportScore prematch provider
+- Upcoming fixture list
+- Prematch detail: overview, H2H, standings, lineups
+- Odds parsing: 1X2, goal totals, corner totals
+- Visible SportScore attribution
+- Hybrid migration: IGScore LIVE by default, SportScore PREMATCH
+- Optional LIVE_PROVIDER=sportscore
+
+Checks completed:
+- Python syntax: PASS
+- JavaScript syntax (node --check): PASS
+- SportScore match HTML parser test: PASS
+- SportScore upcoming HTML parser test: PASS
+- Local WSGI /health: PASS
+- Local WSGI /api/live in demo mode: PASS
+- /api/prematch error handling without internet: PASS
+
+Environment limitation:
+The build container has no external DNS access, so a real-time request to
+sportscore.com could not be executed here. Parser tests use the captured HTML
+responses supplied during development.
