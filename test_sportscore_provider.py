@@ -1,0 +1,51 @@
+services:
+  - type: web
+    name: telegram-football-miniapp
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    maxShutdownDelaySeconds: 30
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: BOT_USERNAME
+        sync: false
+      - key: ADMIN_IDS
+        sync: false
+      - key: DATA_MODE
+        value: igscore
+      - key: COLLECTOR_ENABLED
+        value: "1"
+      - key: LIVE_PROVIDER
+        value: igscore
+      - key: PREMATCH_ENABLED
+        value: "1"
+      - key: PREMATCH_CACHE_SECONDS
+        value: "300"
+      - key: PREMATCH_REFRESH_SECONDS
+        value: "300"
+      - key: PREMATCH_INITIAL_WAIT_SECONDS
+        value: "2.5"
+      - key: PREMATCH_START_GRACE_SECONDS
+        value: "60"
+      - key: SPORTSCORE_BASE_URL
+        value: https://sportscore.com
+      - key: SPORTSCORE_CACHE_SECONDS
+        value: "180"
+      - key: SPORTSCORE_PREMATCH_DAYS_AHEAD
+        value: 3
+      - key: SPORTSCORE_PREMATCH_WORKERS
+        value: "3"
+      - key: SPORTSCORE_PREMATCH_START_GRACE_SECONDS
+        value: "60"
+      - key: SPORTSCORE_HTTP_TIMEOUT
+        value: "8"
+      - key: ADMIN_UPDATE_MODE
+        value: auto
+      - key: NOTIFY_STORAGE
+        value: auto
+      - key: TEAM_LOGO_DOWNLOAD
+        value: "0"
