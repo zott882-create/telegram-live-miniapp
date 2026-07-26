@@ -1,7 +1,0 @@
-Build: OK
-Version: V10.10 TOURNAMENT CENTRE
-Tests: 15 passed
-Python compile: OK
-Inline JavaScript syntax: OK
-External SportScore UI links: disabled
-Exact tournament event cache: enabled
