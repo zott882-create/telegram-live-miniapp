@@ -1,0 +1,8 @@
+V10.6 FULL PREMATCH ID FIX
+
+Purpose:
+- load all rendered SportScore prematches from each dated HTML page
+- use data-match-id as unique event identity
+- prevent opening an older finished meeting for a selected future fixture
+
+Tests are documented in V10_6_FULL_PREMATCH_ID_FIX.md.
