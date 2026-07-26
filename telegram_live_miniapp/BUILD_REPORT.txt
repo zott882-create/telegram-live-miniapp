@@ -1,0 +1,14 @@
+V10.5 PREMATCH HOTFIX
+
+Checks completed:
+- All Python files compile: OK
+- Existing SportScore parser tests: 3/3 OK
+- Inline JavaScript syntax (Node --check): OK
+- Prematch endpoint with a deliberately slow provider returns in 0.2s with background-loading state: OK
+- Strict prematch filter removes past/live/finished rows: OK
+- LIVE cold-start fallback uses direct IGScore when collector DB is still empty: OK
+- Dockerfile and Render configuration preserved at repository root
+
+Important:
+- External SportScore/IGScore requests could not be validated from this build environment.
+- Verify real provider connectivity and match counts in Render logs after deployment.
