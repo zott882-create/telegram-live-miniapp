@@ -1,0 +1,14 @@
+V10.7 CLICKABLE TEAM PAGES
+
+Changes:
+- Added home_link / away_link to normalized SportScore fixtures.
+- Team badge and name in prematch detail open the selected SportScore team page.
+- Telegram external-browser handling plus target=_blank fallback.
+- Strict SportScore team URL allow-list.
+- Live provider logic unchanged.
+
+Validation:
+- Python compile
+- SportScore unit tests
+- JavaScript syntax check
+- Saved SportScore HTML parser check
