@@ -1,0 +1,12 @@
+V10.3 FULL PREMATCH
+
+Checks completed:
+- Python compilation: OK
+- SportScore match parser test: OK
+- SportScore upcoming fixture parser test: OK
+- 101 rendered fixture rows regression test: OK
+- Dockerfile/render.yaml preserved at repository root
+
+Important:
+- External SportScore requests cannot be executed in the build sandbox.
+- Real count must be verified after deployment on Render.
