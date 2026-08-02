@@ -537,8 +537,11 @@ def normalize_match(item: dict[str, Any], *, source: str = "sportscore", sport: 
     hs = _side_score(item, "home")
     ast = _side_score(item, "away")
     status_text = str(_dig(item, "status_text", "statusText", "minute", "clock", "period", "current_period", "phase", "status", default="") or "").strip()
-    minute_match = re.search(r"\d+", status_text)
-    minute = _to_int(minute_match.group(0) if minute_match else 0)
+    # Do not interpret the ordinal in labels such as "2nd half" as minute 2.
+    # A football minute is either a plain numeric clock or carries an apostrophe.
+    period_only = bool(re.fullmatch(r"(?:1st|2nd|first|second)\s*(?:half|period)|(?:1|2)[тt]|ht|перерыв", status_text, flags=re.IGNORECASE))
+    minute_match = None if period_only else re.search(r"(?<![A-Za-z])\d{1,3}(?:\+\d{1,2})?\s*['’]?", status_text)
+    minute = _to_int(re.match(r"\d{1,3}", minute_match.group(0)).group(0) if minute_match else 0)
     competition_obj = _dig(item, "competition", "league", "tournament", "superEvent", "organizer", default={})
     league_raw = _dig(item, "competition_name", "league_name", "tournament_name", default="")
     league = _entity_name(league_raw) or _entity_name(competition_obj) or "Без лиги"

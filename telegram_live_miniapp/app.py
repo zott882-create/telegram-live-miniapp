@@ -3083,6 +3083,16 @@ def _update_match_stats(match_id_value: str, stats_flat: dict[str, Any], match_m
                 card_rows,
             )
 
+        # Avoid dozens of identical history rows when many users have the same
+        # match open. A new row is needed when either cumulative statistics or
+        # the football minute changed; otherwise one snapshot is enough.
+        previous_json = ""
+        try:
+            previous_json = json.dumps(prev_flat, ensure_ascii=False, separators=(",", ":")) if prev_flat else ""
+        except Exception:
+            previous_json = ""
+        history_changed = previous_json != stats_json
+
         conn.execute(
             """
             INSERT INTO match_stats(match_id, stats_json, updated_at)
@@ -3093,18 +3103,25 @@ def _update_match_stats(match_id_value: str, stats_flat: dict[str, Any], match_m
             """,
             (mid, stats_json, ts),
         )
-        conn.execute(
-            """
-            INSERT OR REPLACE INTO match_stats_history(match_id, captured_at, stats_json)
-            VALUES (?, ?, ?)
-            """,
-            (mid, ts, stats_json),
-        )
+        if history_changed:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO match_stats_history(match_id, captured_at, stats_json)
+                VALUES (?, ?, ?)
+                """,
+                (mid, ts, stats_json),
+            )
         conn.execute(
             "DELETE FROM match_stats_history WHERE captured_at < ?",
             (ts - max(PRESSURE_HISTORY_KEEP_SECONDS, PRESSURE_WINDOW_SECONDS * 2),),
         )
         conn.commit()
+        if history_changed:
+            # The pressure chart has a short render cache; invalidate only this
+            # match so the next /api/match response immediately shows movement.
+            with _cache_lock:
+                for cache_key in [k for k in list(_pressure_chart_cache.keys()) if str(k).startswith(mid + ":")]:
+                    _pressure_chart_cache.pop(cache_key, None)
     finally:
         conn.close()
 
@@ -4094,6 +4111,117 @@ def _prematch_row_by_id(match_id_value: str) -> dict[str, Any] | None:
     return None
 
 
+def _sportscore_live_detail_merge(payload: dict[str, Any], expected: dict[str, Any] | None) -> dict[str, Any]:
+    """Synchronise a SportScore detail card with the authoritative Live row.
+
+    SportScore sometimes returns a period label such as ``2nd half`` in the
+    minute field. Its generic parser used to read the leading ``2`` as 2', while
+    the Live list already contained the real 46+ minute clock. Keep the richest
+    detail payload, but use the Live row whenever its clock is clearly fresher.
+    """
+    if not isinstance(payload, dict) or not isinstance(expected, dict) or not expected:
+        return payload
+    match = dict(payload.get("match") or {})
+    if not match:
+        return payload
+    expected_live = bool(expected.get("is_live")) or str(expected.get("status") or "").strip().lower() == "live"
+    if not expected_live:
+        return payload
+
+    # Exact identity always comes from the selected Live row.
+    for key in (
+        "id", "provider_match_id", "slug", "link", "home", "away", "home_id", "away_id",
+        "home_logo", "away_logo", "country", "country_code", "league", "league_logo",
+        "competition_path", "competition_id", "competition_slug", "kickoff_at", "kickoff_iso", "sport",
+    ):
+        value = expected.get(key)
+        if value not in (None, "", {}, []):
+            match[key] = value
+
+    actual_minute = _safe_int(match.get("minute"), 0)
+    expected_minute = _safe_int(expected.get("minute"), 0)
+    actual_text = str(match.get("minute_text") or "").strip()
+    period_label_only = bool(re.fullmatch(
+        r"(?:1st|2nd|first|second)\s*(?:half|period)|(?:1|2)[тt]|ht|перерыв",
+        actual_text,
+        flags=re.IGNORECASE,
+    ))
+    clock_stale = bool(
+        expected_minute > 0
+        and (
+            actual_minute <= 0
+            or expected_minute > actual_minute + 1
+            or (expected_minute > 10 and actual_minute in {1, 2})
+            or period_label_only
+        )
+    )
+    if clock_stale:
+        match["minute"] = expected_minute
+        match["minute_text"] = str(expected.get("minute_text") or f"{expected_minute}'")
+        match["period"] = str(expected.get("period") or ("2T" if expected_minute > 45 else "1T"))
+
+    mismatch = bool(payload.get("detail_mismatch"))
+    actual_home = _safe_int(match.get("score_home"), 0)
+    actual_away = _safe_int(match.get("score_away"), 0)
+    expected_home = _safe_int(expected.get("score_home"), 0)
+    expected_away = _safe_int(expected.get("score_away"), 0)
+    # A mismatched old fixture must never leak its score. Otherwise keep a
+    # potentially fresher detail score unless the Live list is already ahead.
+    if mismatch or (expected_home + expected_away > actual_home + actual_away):
+        match["score_home"] = expected_home
+        match["score_away"] = expected_away
+        match["score"] = str(expected.get("score") or f"{expected_home}-{expected_away}")
+    else:
+        match["score"] = str(match.get("score") or f"{actual_home}-{actual_away}")
+
+    match["status"] = "live"
+    match["is_live"] = True
+    match["scheduled"] = False
+    match["finished"] = False
+    payload = dict(payload)
+    payload["match"] = match
+    payload["finished"] = False
+    return payload
+
+
+def _record_sportscore_detail_pressure(match_id_value: str, payload: dict[str, Any]) -> dict[str, Any]:
+    """Persist each fresh SportScore stats snapshot and rebuild pressure data."""
+    mid = str(match_id_value or "").strip()
+    if not mid or not isinstance(payload, dict) or not payload.get("ok"):
+        return payload
+    match = dict(payload.get("match") or {})
+    if not match or not bool(match.get("is_live")):
+        return payload
+
+    flat = payload.get("stats_flat") if isinstance(payload.get("stats_flat"), dict) else {}
+    if not flat:
+        nested = payload.get("stats") if isinstance(payload.get("stats"), dict) else {}
+        if nested:
+            flat = flat_stats(nested)
+    # Store real cumulative statistics. Minute metadata is included by
+    # _update_match_stats, so the graph advances even during a quiet minute.
+    if isinstance(flat, dict) and any(
+        _safe_int(value, 0) != 0
+        for key, value in flat.items()
+        if not str(key).startswith("__") and key not in {"possession_home", "possession_away"}
+    ):
+        try:
+            _update_match_stats(mid, dict(flat), match)
+        except Exception as exc:
+            print(f"[pressure] detail snapshot failed match={mid}: {type(exc).__name__}: {exc}")
+
+    try:
+        pressure = pressure_from_stats_history(mid)
+        chart = pressure_chart_from_history(mid, match)
+        if isinstance(pressure, dict):
+            payload["pressure"] = pressure
+        if isinstance(chart, dict):
+            payload["pressure_chart"] = chart
+    except Exception as exc:
+        print(f"[pressure] detail rebuild failed match={mid}: {type(exc).__name__}: {exc}")
+    return payload
+
+
 def sportscore_detail_payload(match_id_value: str) -> dict[str, Any]:
     if not _sportscore_ready():
         return {"ok": False, "error": "sportscore_provider_unavailable"}
@@ -4114,6 +4242,8 @@ def sportscore_detail_payload(match_id_value: str) -> dict[str, Any]:
             raw = raw.split(":", 1)[1]
         slug = raw
     payload = sportscore_provider.detail(slug, expected_match=expected, sport=sport)
+    payload = _sportscore_live_detail_merge(payload, expected)
+    payload = _record_sportscore_detail_pressure(mid, payload)
     return _decorate_detail_odds(payload, mid)
 
 

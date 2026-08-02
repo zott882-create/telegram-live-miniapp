@@ -3049,6 +3049,58 @@ function attachClientPressure(payload) {
   return payload;
 }
 
+function syncDetailPayloadWithLive(payload) {
+  if (!payload || !payload.ok || !payload.match) return payload;
+  const id = String(payload.match.id || state.selectedMatch || "");
+  const live = flattenLive(state.live).find(row => String(row?.id || "") === id);
+  if (!live || live.finished || live.is_live === false) return payload;
+
+  const match = { ...payload.match };
+  const liveMinute = safeInt(live.minute, 0);
+  const detailMinute = safeInt(match.minute, 0);
+  const detailText = String(match.minute_text || "").trim();
+  const periodOnly = /^(?:1st|2nd|first|second)\s*(?:half|period)$|^(?:1|2)[тt]$|^ht$|^перерыв$/i.test(detailText);
+  const liveClockFresher = liveMinute > 0 && (
+    detailMinute <= 0 ||
+    liveMinute > detailMinute + 1 ||
+    (liveMinute > 10 && (detailMinute === 1 || detailMinute === 2)) ||
+    periodOnly
+  );
+
+  // Keep exact identity and logos from the main Live row.
+  for (const key of [
+    "id","provider_match_id","slug","link","home","away","home_id","away_id",
+    "home_logo","away_logo","country","country_code","league","league_logo",
+    "competition_path","competition_id","competition_slug","sport"
+  ]) {
+    const value = live[key];
+    if (value !== undefined && value !== null && value !== "") match[key] = value;
+  }
+
+  if (liveClockFresher) {
+    match.minute = liveMinute;
+    match.minute_text = normalizeMatchMinuteText(live.minute_text, liveMinute);
+    match.period = live.period || (liveMinute > 45 ? "2T" : "1T");
+  }
+
+  const detailHome = safeInt(match.score_home, 0);
+  const detailAway = safeInt(match.score_away, 0);
+  const liveHome = safeInt(live.score_home, 0);
+  const liveAway = safeInt(live.score_away, 0);
+  // Never replace a newer detail goal with an older list score, but do promote
+  // the list score when it is clearly ahead.
+  if (liveHome + liveAway > detailHome + detailAway || payload.detail_mismatch) {
+    match.score_home = liveHome;
+    match.score_away = liveAway;
+    match.score = live.score || `${liveHome}-${liveAway}`;
+  }
+
+  match.is_live = true;
+  match.finished = false;
+  match.status = "live";
+  return { ...payload, match, finished: false };
+}
+
 let _loadDetailSeq = 0;
 async function loadDetail(id, opts = {}) {
   id = normalizeMatchId(id);
@@ -3074,6 +3126,7 @@ async function loadDetail(id, opts = {}) {
     let payload = await res.json();
     if (seq !== _loadDetailSeq) return;
     if (payload && payload.ok) {
+      payload = syncDetailPayloadWithLive(payload);
       payload = attachClientPressure(payload);
       if (payload.match && isFav(id)) {
         saveFavCache(id, { ...payload.match, finished: Boolean(payload.finished || payload.match.finished) });
@@ -6363,9 +6416,22 @@ function renderSoftPreserveScroll() {
 async function refreshDetailSilently() {
   if (state.view !== "detail" || !state.selectedMatch || state.sheet) return;
   try {
+    // Refresh the shared Live snapshot first. It is the authoritative source for
+    // the football clock and prevents a detail label such as "2nd half" from
+    // being rendered as 2'. The server cache keeps this inexpensive.
+    try {
+      const liveRes = await fetch(`/api/live?sport=football`, { cache: "no-store" });
+      const livePayload = await liveRes.json();
+      if (livePayload && livePayload.ok) {
+        state.live = livePayload;
+        if (state.liveBySport) state.liveBySport.football = livePayload;
+      }
+    } catch (_) {}
+
     const res = await fetch(`/api/match?id=${encodeURIComponent(state.selectedMatch)}`, { cache: "no-store" });
     let payload = await res.json();
     if (payload && payload.ok) {
+      payload = syncDetailPayloadWithLive(payload);
       payload = attachClientPressure(payload);
       state.detail = payload;
       renderSoftPreserveScroll();
