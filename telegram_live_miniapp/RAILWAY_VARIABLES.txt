@@ -1,0 +1,19 @@
+ОБЯЗАТЕЛЬНО ДОБАВИТЬ В RAILWAY → VARIABLES
+
+API_FOOTBALL_KEY = ключ API-Football
+
+СОХРАНИТЬ ИЗ ТЕКУЩЕГО БОТА
+BOT_TOKEN
+BOT_USERNAME
+MINIAPP_SHORT_NAME
+ADMIN_IDS
+DATABASE_URL
+REDIS_URL
+
+РЕКОМЕНДУЕМЫЕ
+APP_TIMEZONE=Europe/Moscow
+API_FOOTBALL_MAX_RPS=4
+API_FOOTBALL_TODAY_TTL=60
+API_FOOTBALL_OTHER_DATE_TTL=1800
+
+Ключ API-Football намеренно не записан в ZIP: браузер и пользователи его не увидят.
