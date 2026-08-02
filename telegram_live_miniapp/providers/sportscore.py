@@ -1550,6 +1550,100 @@ def _parse_html_stats(soup: BeautifulSoup) -> dict[str, int]:
     return _merge_flat_stats(rows, *embedded)
 
 
+def _parse_html_events(soup: BeautifulSoup, match: dict[str, Any]) -> list[dict[str, Any]]:
+    events: list[dict[str, Any]] = []
+    seen: set[tuple[Any, ...]] = set()
+
+    def add_many(items: Any) -> None:
+        for ev in _normalize_events(items, match):
+            key = (str(ev.get("type") or ""), _to_int(ev.get("minute"), 0), str(ev.get("side") or ""), str(ev.get("player") or "").casefold(), str(ev.get("score") or ""))
+            if key in seen:
+                continue
+            seen.add(key)
+            events.append(ev)
+
+    # First try embedded JSON blocks. They are usually the richest source.
+    for script in soup.select('script[type="application/json"], script#__NEXT_DATA__, script'):
+        raw = script.string or script.get_text("", strip=True)
+        if not raw or len(raw) < 2:
+            continue
+        for candidate in (raw,):
+            try:
+                payload = json.loads(candidate)
+            except Exception:
+                continue
+            add_many(payload)
+            if events:
+                break
+        if events:
+            break
+
+    # Fallback: scan visible timeline / incidents markup.
+    if not events:
+        home_name = _normalized_team_name(match.get("home"))
+        away_name = _normalized_team_name(match.get("away"))
+        roots = soup.select(
+            "#events, #timeline, .events, .timeline, .match-events, .match-timeline, "
+            "[data-tab='events'], [data-tab='timeline'], [data-tab-content='events'], [data-tab-content='timeline'], "
+            "[class*='timeline'], [class*='incident'], [class*='event']"
+        )
+        rows: list[dict[str, Any]] = []
+        seen_texts: set[str] = set()
+        for root in roots[:20]:
+            for node in root.select("li, tr, .row, .event, .incident, .timeline-row, .timeline-item, .event-row, .incident-row, [class*='event'], [class*='incident']"):
+                row_text = " ".join(node.get_text(" ", strip=True).split())
+                if not row_text or len(row_text) < 3:
+                    continue
+                kind = _normalize_event_type(row_text)
+                if kind not in {"goal", "yellow", "red"}:
+                    continue
+                key_text = row_text.casefold()
+                if key_text in seen_texts:
+                    continue
+                seen_texts.add(key_text)
+                minute_el = node.select_one(".minute, .time, [class*='minute'], [class*='time']")
+                minute_raw = " ".join(((minute_el.get_text(" ", strip=True) if minute_el else row_text)).split())
+                minute_match = re.search(r"(\d{1,3})(?:\s*\+\s*(\d{1,2}))?\s*['’′]?", minute_raw)
+                base = _to_int(minute_match.group(1) if minute_match else 0)
+                extra = _to_int(minute_match.group(2) if minute_match and minute_match.group(2) else 0)
+                minute = base + extra
+                minute_text = f"{base}+{extra}'" if extra else (f"{base}'" if base else "—")
+
+                side = "neutral"
+                classes = " ".join(node.get("class") or []) if hasattr(node, "get") else ""
+                cls = classes.casefold()
+                if any(token in cls for token in ("home", "left")):
+                    side = "home"
+                elif any(token in cls for token in ("away", "right", "guest")):
+                    side = "away"
+                else:
+                    probe = _normalized_team_name(row_text)
+                    if home_name and home_name in probe:
+                        side = "home"
+                    elif away_name and away_name in probe:
+                        side = "away"
+
+                player_el = node.select_one(".player, .player-name, .name, .scorer, [class*='player'], [class*='scorer']")
+                player = " ".join((player_el.get_text(" ", strip=True) if player_el else "").split())
+                score_match = re.search(r"(\d+)\s*[:\-]\s*(\d+)", row_text)
+                score = f"{score_match.group(1)}-{score_match.group(2)}" if score_match else ""
+                team = str(match.get("home") or "") if side == "home" else str(match.get("away") or "") if side == "away" else ""
+                rows.append({
+                    "type": kind,
+                    "minute": minute,
+                    "minute_text": minute_text,
+                    "side": side,
+                    "team": team,
+                    "player": player,
+                    "score": score,
+                })
+        add_many(rows)
+
+    priority = {"goal": 0, "yellow": 1, "red": 2}
+    events.sort(key=lambda x: (_to_int(x.get("minute"), 999), priority.get(str(x.get("type") or ""), 9)))
+    return events
+
+
 def parse_match_html(text: str, slug: str = "") -> dict[str, Any]:
     soup = BeautifulSoup(text or "", "html.parser")
     event = _sports_event_from_html(soup)
@@ -1578,6 +1672,7 @@ def parse_match_html(text: str, slug: str = "") -> dict[str, Any]:
         "absences": _parse_absences(soup),
         "stats_flat": _parse_html_stats(soup),
         "venue": venue,
+        "events": _parse_html_events(soup, match),
     }
 
 
@@ -3592,7 +3687,22 @@ def detail(slug: str, force: bool = False, expected_match: dict[str, Any] | None
             ) if isinstance(api, dict) else None
             if events is None:
                 events = _dig(api_obj, "timeline.events", "events", "timeline", "data.events", "data.timeline.events", default=[])
-            parsed["events"] = _normalize_events(events, api_match or parsed.get("match") or {})
+            api_events = _normalize_events(events, api_match or parsed.get("match") or {})
+            existing_events = list(parsed.get("events") or [])
+            parsed_events: list[dict[str, Any]] = []
+            seen_event_keys: set[tuple[Any, ...]] = set()
+            for source_events in (existing_events, api_events):
+                for event in source_events:
+                    if not isinstance(event, dict):
+                        continue
+                    key = (str(event.get("type") or ""), _to_int(event.get("minute"), 0), str(event.get("side") or ""), str(event.get("player") or "").casefold(), str(event.get("score") or ""))
+                    if key in seen_event_keys:
+                        continue
+                    seen_event_keys.add(key)
+                    parsed_events.append(event)
+            priority = {"goal": 0, "yellow": 1, "red": 2}
+            parsed_events.sort(key=lambda x: (_to_int(x.get("minute"), 999), priority.get(str(x.get("type") or ""), 9)))
+            parsed["events"] = parsed_events
             parsed["stats_flat"] = _merge_flat_stats(parsed.get("stats_flat") or {}, _event_counter_stats(parsed.get("events") or []))
             api_lineups = _dig(
                 api, "lineups", "data.lineups", "data.match.lineups", "match.lineups", default=None,

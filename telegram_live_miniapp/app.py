@@ -10778,7 +10778,9 @@ class MiniAppHandler(BaseHTTPRequestHandler):
 
             immutable_asset = (
                 ".v1042." in file_path.name
+                or ".v1042." in file_path.name
                 or ".v1041." in file_path.name
+                or ".v1042." in file_path.name
                 or ".v1041." in file_path.name
                 or ".v1040." in file_path.name
                 or ".v1039." in file_path.name
