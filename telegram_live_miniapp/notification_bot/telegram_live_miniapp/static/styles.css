@@ -4660,3 +4660,208 @@ html.embedded-notify .pm-events-section .tl-secondary{margin-top:3px;color:#8ea7
 html.embedded-notify .pm-events-section .tl-secondary .scoreline{color:#9bc9f0}
 html.embedded-notify .pm-events-section .timeline-empty{margin:0 9px;padding:16px;border-radius:14px;background:#0d1721;color:#89a0b2;font-size:10px;text-align:center;border:1px solid rgba(255,255,255,.04)}
 
+
+
+/* === LIVE matches tab: make layout match prematch exactly === */
+html.embedded-notify .live-pm-matches-card{
+  padding:12px!important;
+  background:#131f2a!important;
+  border:1px solid rgba(255,255,255,.06)!important;
+  border-radius:15px!important;
+}
+html.embedded-notify .live-pm-matches-card .pm-live-section-title{
+  display:flex!important;
+  align-items:flex-end!important;
+  gap:6px!important;
+  flex-wrap:wrap!important;
+  margin:0 0 10px!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  color:#fff!important;
+}
+html.embedded-notify .live-pm-matches-card .pm-live-section-title span{
+  font-size:8px!important;
+  color:#7ea3c4!important;
+  font-weight:700!important;
+}
+html.embedded-notify .live-pm-switchbar{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:0!important;
+  margin:0 0 12px!important;
+  padding:6px!important;
+  background:#09131c!important;
+  border:1px solid rgba(255,255,255,.05)!important;
+  border-radius:18px!important;
+  overflow:hidden!important;
+}
+html.embedded-notify .live-pm-sidebtn{
+  min-width:0!important;
+  height:50px!important;
+  border:0!important;
+  border-radius:14px!important;
+  background:transparent!important;
+  color:#78a3c6!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  justify-content:flex-start!important;
+  padding:0 10px!important;
+  box-shadow:none!important;
+}
+html.embedded-notify .live-pm-sidebtn.active{
+  background:linear-gradient(180deg,#66bbf5,#4fa8e8)!important;
+  color:#fff!important;
+  box-shadow:0 6px 16px rgba(58,141,204,.22)!important;
+}
+html.embedded-notify .live-pm-sidebtn .team-logo-small{
+  width:22px!important;
+  height:22px!important;
+  flex:0 0 22px!important;
+  background:transparent!important;
+  border:0!important;
+}
+html.embedded-notify .live-pm-sidebtn span{
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:9.5px!important;
+  font-weight:800!important;
+  letter-spacing:.01em!important;
+}
+html.embedded-notify .live-pm-sidehead{
+  display:flex!important;
+  align-items:center!important;
+  gap:9px!important;
+  margin:0 0 12px!important;
+  padding:0 2px!important;
+}
+html.embedded-notify .live-pm-sidehead .team-logo-small{
+  width:28px!important;
+  height:28px!important;
+  flex:0 0 28px!important;
+  background:transparent!important;
+  border:0!important;
+}
+html.embedded-notify .live-pm-sidehead div{min-width:0!important}
+html.embedded-notify .live-pm-sidehead b{
+  display:block!important;
+  font-size:12px!important;
+  color:#fff!important;
+  font-weight:800!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+html.embedded-notify .live-pm-sidehead small{
+  display:block!important;
+  margin-top:3px!important;
+  font-size:8px!important;
+  color:#7890a2!important;
+  font-weight:700!important;
+  text-transform:uppercase!important;
+  letter-spacing:.2px!important;
+}
+html.embedded-notify .live-history-groups{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:8px!important;
+}
+html.embedded-notify .live-history-group{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:0!important;
+  padding:0 4px!important;
+}
+html.embedded-notify .live-history-day{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  padding:0 6px 4px!important;
+}
+html.embedded-notify .live-history-day b{
+  font-size:9px!important;
+  color:#eef4f8!important;
+  line-height:1.2!important;
+  font-weight:800!important;
+}
+html.embedded-notify .live-history-day small{
+  margin-left:10px!important;
+  font-size:8px!important;
+  color:#7ea3c4!important;
+  font-weight:800!important;
+  white-space:nowrap!important;
+}
+html.embedded-notify .live-history-match{
+  display:grid!important;
+  grid-template-columns:34px 36px minmax(0,1fr) 18px!important;
+  gap:10px!important;
+  align-items:center!important;
+  padding:12px 12px!important;
+  border-radius:16px!important;
+  background:linear-gradient(180deg,#142230,#101b27)!important;
+  border:1px solid rgba(255,255,255,.04)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.02)!important;
+}
+html.embedded-notify .live-history-status{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  color:#85a0b6!important;
+  font-size:11px!important;
+  font-weight:900!important;
+  text-transform:uppercase!important;
+}
+html.embedded-notify .live-history-scores{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:4px!important;
+}
+html.embedded-notify .live-history-scores b{
+  font-size:14px!important;
+  line-height:1!important;
+  font-weight:900!important;
+  color:#9baab7!important;
+}
+html.embedded-notify .live-history-scores b.me{color:#ffffff!important}
+html.embedded-notify .live-history-teams{
+  min-width:0!important;
+  display:grid!important;
+  gap:6px!important;
+}
+html.embedded-notify .live-history-teamline{
+  display:grid!important;
+  grid-template-columns:18px minmax(0,1fr)!important;
+  gap:8px!important;
+  align-items:center!important;
+}
+html.embedded-notify .live-history-teamline .team-logo-small{
+  width:18px!important;
+  height:18px!important;
+  flex:0 0 18px!important;
+  background:transparent!important;
+  border:0!important;
+}
+html.embedded-notify .live-history-teamline span{
+  min-width:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  color:#aab9c6!important;
+}
+html.embedded-notify .live-history-teamline.selected span{
+  color:#ffffff!important;
+  font-weight:800!important;
+}
+html.embedded-notify .live-history-arrow{
+  color:#4f6780!important;
+  font-size:18px!important;
+  font-weight:900!important;
+  text-align:right!important;
+}

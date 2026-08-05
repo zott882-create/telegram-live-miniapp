@@ -4567,7 +4567,7 @@ function renderMatchEvents(events, m) {
     if (ev._time.elapsed <= 45) half = { home: homeGoals, away: awayGoals };
   }
 
-  const labelFor = (type) => type === "goal" ? "⚽ ГОЛ" : type === "red" ? "🟥 КАРТОЧКА" : "🟨 КАРТОЧКА";
+  const labelFor = (type) => type === "goal" ? "ГОЛ" : type === "red" ? "🟥" : "🟨";
   const classFor = (type) => type === "goal" ? "goal" : type === "red" ? "red" : "yellow";
   const divider = (label, cls = "") => `<div class="period-divider ${cls}"><span>${esc(label)}</span></div>`;
 
@@ -4591,12 +4591,14 @@ function renderMatchEvents(events, m) {
       rows.push(divider(`Добавочное время ${extra}`, "extra"));
     }
 
-    const player = esc(ev.player || "Игрок");
+    const playerName = String(ev.player || "").trim();
+    const player = playerName ? `<div class="tl-person">${esc(playerName)}</div>` : "";
     const secondary = type === "goal" && ev._score
       ? `<div class="tl-secondary"><span class="scoreline">счёт ${esc(ev._score)}</span></div>`
       : "";
     const kind = `<span class="tl-kind ${cls}">${esc(labelFor(type))}</span>`;
-    const content = `${kind}<div class="tl-personwrap"><div class="tl-person">${player}</div>${secondary}</div>`;
+    const person = player || secondary ? `<div class="tl-personwrap">${player}${secondary}</div>` : "";
+    const content = `${kind}${person}`;
     const card = `<div class="tl-card ${side === "away" ? "away" : ""}"><div class="tl-minute">${esc(ev._time.text)}</div><div class="tl-content">${content}</div></div>`;
 
     rows.push(`<div class="tl-row ${side}"><div class="tl-col left">${side === "home" ? card : ""}</div><div class="tl-axis"><span class="tl-dot ${cls}"></span></div><div class="tl-col right">${side === "away" ? card : ""}</div></div>`);
