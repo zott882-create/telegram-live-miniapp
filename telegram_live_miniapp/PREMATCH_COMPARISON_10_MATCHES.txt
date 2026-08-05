@@ -1,0 +1,16 @@
+PREMATCH COMPARISON — LAST 10 MATCHES
+
+Prematch match cards now have four tabs:
+1. Сравнение
+2. Матчи
+3. Таблица
+4. Тренды
+
+The comparison is calculated from each team's last 10 completed API-Football fixtures.
+It includes W-D-L, goals for/against, averages, goal difference, O1.5/O2.5/O3.5,
+BTTS, clean sheets, failed to score, first-half results, form, and a separate
+home-host / away-guest split within those ten matches.
+
+The first successful result is saved in PostgreSQL service state for six hours.
+Opening or switching the tab reads cached data; pressing refresh can force a new fetch.
+The frozen notification_bot directory was not modified.

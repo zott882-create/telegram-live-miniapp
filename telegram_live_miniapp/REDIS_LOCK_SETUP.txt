@@ -1,0 +1,33 @@
+LIVE ZOT — Redis distributed background lock
+
+This build uses the existing Railway Redis service. No second Redis service is needed.
+
+Required variable in the Live ZOT application service:
+  REDIS_URL
+
+The wrapper also accepts REDIS_INTERNAL_URL or REDIS_PUBLIC_URL.
+
+Default lock settings:
+  key: telegram_live_miniapp:football:v1:background-runtime:leader
+  TTL: 180 seconds
+  renewal: every 45 seconds
+  standby retry: every 15 seconds
+
+Optional variables:
+  LIVEZOT_BACKGROUND_LOCK_KEY
+  LIVEZOT_BACKGROUND_LOCK_TTL_SECONDS
+  LIVEZOT_BACKGROUND_LOCK_RENEW_SECONDS
+  LIVEZOT_BACKGROUND_LOCK_RETRY_SECONDS
+
+Behavior:
+- Every web instance initializes PostgreSQL-backed shared state.
+- Only the Redis lock owner starts collectors, notifications, goal monitoring and Scores24 refresh.
+- Other instances remain web/API standbys and do not consume duplicate upstream requests.
+- If the leader process dies, another instance takes over after the lock expires.
+- If a running leader loses the lock, it terminates so two collectors cannot run together.
+- Redis is mandatory in this build; there is no unsafe local-lock fallback.
+
+Health endpoint:
+  /health
+
+It now reports Redis status and background role: leader or standby.

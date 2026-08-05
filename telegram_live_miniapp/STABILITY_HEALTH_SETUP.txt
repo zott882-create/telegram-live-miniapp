@@ -1,0 +1,76 @@
+LIVE ZOT — strict prediction lifecycle + health monitoring
+===========================================================
+
+Prediction lifecycle
+--------------------
+Each saved prediction match now keeps a persistent state in PostgreSQL:
+- UNMATCHED
+- PREMATCH_NEW
+- PREMATCH_SAVED
+- LIVE
+- FINAL_PENDING
+- FINALIZED
+- POSTPONED
+- CANCELLED
+
+Request policy
+--------------
+1. A newly matched prematch is loaded once:
+   - fixture metadata
+   - one statistics snapshot (an empty API response is still a valid saved snapshot)
+2. Before kickoff, that match is served only from PostgreSQL.
+3. At/after kickoff, the shared fixture-status lookup detects the transition to LIVE.
+4. A LIVE fixture refreshes score and statistics no more than once every 300 seconds.
+5. A finished fixture receives one successful final statistics snapshot and is frozen forever.
+6. Cancelled fixtures are frozen immediately as a void/push result.
+7. Postponed fixtures are checked only every 6 hours.
+8. Unmatched fixtures retry every 30 minutes instead of every cycle.
+9. Multiple predictions for the same API-Football fixture share one fixture/statistics request.
+10. Opening the Predictions tab or pressing refresh only reads PostgreSQL; external providers are background-only.
+
+Health endpoint
+---------------
+Railway health path remains:
+  /health
+
+It checks:
+- PostgreSQL connectivity
+- Redis connectivity
+- active Redis background-leader lock
+- Scores24 worker heartbeat and repeated failures
+- API-Football configuration and consecutive upstream failures
+- API-Football daily quota percentage
+
+The endpoint returns HTTP 503 when a critical check fails.
+
+Telegram admin alerts
+---------------------
+The Redis leader starts one health monitor. It sends alerts to ADMIN_IDS using the existing BOT_TOKEN when:
+- PostgreSQL is unavailable
+- Redis is unavailable
+- the background leader lock is missing/stale
+- the Scores24 worker heartbeat is stale or repeated cycles fail
+- API-Football fails repeatedly
+- API-Football remaining quota falls below 20%, 10%, or 5%
+
+A recovery message is sent when the issue disappears. Repeated alerts are rate-limited.
+
+Optional environment variables
+------------------------------
+LIVEZOT_HEALTH_MONITOR_INTERVAL_SECONDS=60
+LIVEZOT_HEALTH_ALERT_COOLDOWN_SECONDS=1800
+LIVEZOT_HEALTH_API_FAILURE_THRESHOLD=3
+LIVEZOT_HEALTH_STARTUP_GRACE_SECONDS=180
+SCORES24_WORKER_STALE_SECONDS=1200
+SCORES24_WORKER_FAILURE_THRESHOLD=3
+SCORES24_MATCH_DISCOVERY_RETRY_SECONDS=1800
+SCORES24_POSTPONED_RECHECK_SECONDS=21600
+SCORES24_LIVE_REFRESH_SECONDS=300
+
+Required variables
+------------------
+DATABASE_URL
+REDIS_URL
+API_FOOTBALL_KEY
+BOT_TOKEN
+ADMIN_IDS
