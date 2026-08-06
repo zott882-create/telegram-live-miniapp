@@ -1,4 +1,0 @@
-TOPDIV_DB_HISTORY_RESTORE_V13
-Only UEFA club cups and senior men top domestic divisions.
-Historical tabs are rebuilt from all saved PostgreSQL Scores24 rows by actual fixture date.
-Past-date UI ignores stale local cache and reads PostgreSQL first.
