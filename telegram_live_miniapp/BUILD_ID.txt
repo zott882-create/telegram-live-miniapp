@@ -1,4 +1,0 @@
-TOPDIV_DOMESTIC_COUNTRY_MERGE_V14
-Only UEFA club cups and senior men top domestic divisions.
-Fix: merge the outer GraphQL league country into match.uniqueTournament before filtering domestic leagues.
-Historical date tabs continue to read all saved PostgreSQL rows by real fixture date.
