@@ -1,3 +1,0 @@
-TOPDIV_EMPTY_GUARD_V12
-Only UEFA club cups and senior men top domestic divisions.
-Empty GraphQL scans cannot prune PostgreSQL predictions.
